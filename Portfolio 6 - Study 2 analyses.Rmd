@@ -1,0 +1,51 @@
+---
+title: "Portfolio 6 - Study 2 analyses"
+author: "Adam"
+date: "5/4/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The goal of this portfolio is to run the analyses for study 2 of my thesis. 
+
+## Set up
+
+Bringing in the packages I need.
+
+```{r bringing in packages, echo=TRUE, message=FALSE}
+library('psych')
+library('dplyr')
+library('tidyverse')
+library('Hmisc')
+library('Rcpp')
+library('readr')
+```
+
+
+#### Bringing in the data
+
+```{r loading data, echo=TRUE, collapse=TRUE, message=FALSE}
+study1 <- read_csv("Study2_data_R_cleaned.csv")
+
+# Ensuring the dataframe is a tibble.
+as_tibble(study1)
+
+#Taking a look at the table.
+View(study1)
+```
+
+
+
+### Analyses!
+
+Dropping this from my thesis so we know where we're going.
+
+>For each hypothesis, I had originally intended to conduct a multi-level model with group as a random effect, nesting participant responses within their study session. However, initial analyses suggested that multi-level models were unnecessarily complex; session accounted for very little variance across the different outcomes. Therefore, I decided to run a simplified linear regression models with dummy codes to account for students’ Introductory Psychology instructor.  That said, the results from both the multi-level models and the models presented here are very similar. I included the following covariates in all models: gender (dummy coded with women as the reference class), race (dummy coded with White as the reference class), number of group members known prior to the study, and number of classmates known prior to the study. When the omnibus test of condition was significant, I then conducted post-hoc tests to compare each of the conditions with each other, using Sidak correction to correct for multiple comparisons.
+
+Put another way, we're doing simplified linear regression models 
+
+
+## Wrapping up
