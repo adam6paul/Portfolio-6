@@ -204,28 +204,28 @@ library(&#39;dplyr&#39;)
 library(&#39;tidyverse&#39;)
 library(&#39;Hmisc&#39;)
 library(&#39;Rcpp&#39;)
-library(&#39;readr&#39;)</code></pre>
+library(&#39;readr&#39;)
+library(&#39;emmeans&#39;)</code></pre>
 <div id="bringing-in-the-data" class="section level4">
 <h4>Bringing in the data</h4>
 <pre class="r"><code>study1 &lt;- read_csv(&quot;Study2_data_R_cleaned.csv&quot;)
-## Warning: Missing column names filled in: &#39;X1&#39; [1]
 
 # Ensuring the dataframe is a tibble.
 as_tibble(study1)
-## # A tibble: 140 x 135
-##       X1 Finished.x participant_id manip_interest manip_personal manip_encourage
-##    &lt;dbl&gt;      &lt;dbl&gt; &lt;chr&gt;                   &lt;dbl&gt;          &lt;dbl&gt;           &lt;dbl&gt;
-##  1     1          1 102A                        4              4               4
-##  2     2          1 102B                        4              2               2
-##  3     3          1 102C                        3              2               2
-##  4     4          1 102D                        4              3               2
-##  5     5          1 103A                        4              1               2
-##  6     6          1 103B                        3              1               1
-##  7     7          1 103C                        2              2               2
-##  8     8          1 104A                        3              2               4
-##  9     9          1 104B                        2              4               4
-## 10    10          1 104C                        3              3               4
-## # ... with 130 more rows, and 129 more variables: manip_help_think &lt;dbl&gt;,
+## # A tibble: 140 x 141
+##    Finished.x participant_id manip_interest manip_personal manip_encourage
+##         &lt;dbl&gt; &lt;chr&gt;                   &lt;dbl&gt;          &lt;dbl&gt;           &lt;dbl&gt;
+##  1          1 102A                        4              4               4
+##  2          1 102B                        4              2               2
+##  3          1 102C                        3              2               2
+##  4          1 102D                        4              3               2
+##  5          1 103A                        4              1               2
+##  6          1 103B                        3              1               1
+##  7          1 103C                        2              2               2
+##  8          1 104A                        3              2               4
+##  9          1 104B                        2              4               4
+## 10          1 104C                        3              3               4
+## # ... with 130 more rows, and 136 more variables: manip_help_think &lt;dbl&gt;,
 ## #   manip_represent &lt;dbl&gt;, manip_suprise &lt;dbl&gt;, group_talk &lt;dbl&gt;,
 ## #   group_engage &lt;dbl&gt;, group_enjoy &lt;dbl&gt;, group_fun &lt;dbl&gt;, self_close &lt;dbl&gt;,
 ## #   self_like &lt;dbl&gt;, group_like &lt;dbl&gt;, group_tell &lt;dbl&gt;, group_share &lt;dbl&gt;,
@@ -242,10 +242,893 @@ View(study1)</code></pre>
 <blockquote>
 <p>For each hypothesis, I had originally intended to conduct a multi-level model with group as a random effect, nesting participant responses within their study session. However, initial analyses suggested that multi-level models were unnecessarily complex; session accounted for very little variance across the different outcomes. Therefore, I decided to run a simplified linear regression models with dummy codes to account for students’ Introductory Psychology instructor. That said, the results from both the multi-level models and the models presented here are very similar. I included the following covariates in all models: gender (dummy coded with women as the reference class), race (dummy coded with White as the reference class), number of group members known prior to the study, and number of classmates known prior to the study. When the omnibus test of condition was significant, I then conducted post-hoc tests to compare each of the conditions with each other, using Sidak correction to correct for multiple comparisons.</p>
 </blockquote>
+<p>Put another way, we’re doing simplified linear regression models.</p>
+<p>Hypotheses:</p>
+<p>H1: Students in the prompted disclosure condition will report greater belonging, at both the institutional and class levels, than students in either the prompted discussion or control conditions.</p>
+<p>H2: Students in the prompted disclosure condition will report greater subject area motivation than students in either the prompted discussion or control conditions.</p>
+<p>H3: Students in the prompted disclosure condition will feel closer to their groupmates than students in either the prompted discussion or control conditions.</p>
+<p>H4: Students in the prompted disclosure condition will score higher on the quiz than students in either the prompted discussion or control conditions.</p>
+</div>
+<div id="preliminary-analyses" class="section level3">
+<h3>Preliminary analyses</h3>
+<p>Repeat from portfolio 5, because I really need this to be correct.</p>
+<pre class="r"><code>study1$condition &lt;- as.character(study1$condition)
+
+class(study1$condition)</code></pre>
+<pre><code>## [1] &quot;character&quot;</code></pre>
+<blockquote>
+<p>Important note: 0 is control, 1 is prompted discussion, and 2 is prompted disclosure.</p>
+</blockquote>
+<div id="correlations" class="section level4">
+<h4>Correlations</h4>
+<p>The bivariate correlations for the variables of interest.</p>
+<pre class="r"><code>correlations &lt;- study1 %&gt;%
+        select(class_belong_comp4, school_belong_comp4, motiv_intrins_comp2, motiv_util_comp3)
+
+rcorr(as.matrix(correlations))</code></pre>
+<pre><code>##                     class_belong_comp4 school_belong_comp4 motiv_intrins_comp2
+## class_belong_comp4                1.00                0.41                0.52
+## school_belong_comp4               0.41                1.00                0.14
+## motiv_intrins_comp2               0.52                0.14                1.00
+## motiv_util_comp3                  0.44                0.15                0.65
+##                     motiv_util_comp3
+## class_belong_comp4              0.44
+## school_belong_comp4             0.15
+## motiv_intrins_comp2             0.65
+## motiv_util_comp3                1.00
+## 
+## n= 140 
+## 
+## 
+## P
+##                     class_belong_comp4 school_belong_comp4 motiv_intrins_comp2
+## class_belong_comp4                     0.0000              0.0000             
+## school_belong_comp4 0.0000                                 0.0995             
+## motiv_intrins_comp2 0.0000             0.0995                                 
+## motiv_util_comp3    0.0000             0.0844              0.0000             
+##                     motiv_util_comp3
+## class_belong_comp4  0.0000          
+## school_belong_comp4 0.0844          
+## motiv_intrins_comp2 0.0000          
+## motiv_util_comp3</code></pre>
+<p>Class and institutional belonging are correlated, and both levels of motivation are correlated with class belonging. class belonging and school belonging r=.41, p&lt;.001 class belonging and intrinsic motivation r=.52, p&lt;.001 class belonging and utility motivation r=.44, p&lt;.001 Utility motivation and intrinsic motivation r=.65, p&lt;.001.</p>
+</div>
+<div id="disclosure" class="section level4">
+<h4>Disclosure</h4>
+<p>This is the measure of how much participants though the questions asked them to disclose.</p>
+<pre class="r"><code>lm_disclose = lm(manip_check_comp2~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_disclose) #Review the results</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = manip_check_comp2 ~ condition + gender_male_dummy + 
+##     race_asian + race_black + race_multiracial + race_hispanic + 
+##     section_greene + section_verbecke + section_cameron + know_prior_study + 
+##     class_know_prior, data = study1)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.72999 -0.56874 -0.06032  0.52903  2.27998 
+## 
+## Coefficients:
+##                   Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)        1.70347    0.20690   8.233 1.97e-13 ***
+## condition1         0.12478    0.18850   0.662   0.5092    
+## condition2         1.26382    0.18121   6.974 1.54e-10 ***
+## gender_male_dummy  0.21350    0.15058   1.418   0.1587    
+## race_asian         0.52419    0.25096   2.089   0.0387 *  
+## race_black         0.20283    0.33798   0.600   0.5495    
+## race_multiracial  -0.09938    0.29189  -0.340   0.7341    
+## race_hispanic      0.35945    0.30718   1.170   0.2442    
+## section_greene     0.14294    0.20719   0.690   0.4915    
+## section_verbecke   0.03546    0.22947   0.155   0.8774    
+## section_cameron    0.10332    0.18182   0.568   0.5709    
+## know_prior_study   0.23303    0.11499   2.027   0.0448 *  
+## class_know_prior   0.04003    0.05409   0.740   0.4607    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.8237 on 126 degrees of freedom
+##   (1 observation deleted due to missingness)
+## Multiple R-squared:  0.3953, Adjusted R-squared:  0.3377 
+## F-statistic: 6.864 on 12 and 126 DF,  p-value: 1.968e-09</code></pre>
+<p>The first line of code is the creation of the linear model.</p>
+<p>First, we give it a name (lm_disclose). Then, we use the lm command to run the model, with the target variable followed by the predictors. Then, the last line is the dataset that is being used.</p>
+<p>Once that’s done, we run summary to find out the results.</p>
+<p>We found that condition was a significant predictor, as was asian, and group members known prior.</p>
+<p>Specifically, we see that the experimental condition is significantly different. But we want to look at the pairwise comparisons to look at how it differs from the other conditions.</p>
+<pre class="r"><code>emmeans(lm_disclose, pairwise ~ condition, adjust= &quot;holm&quot;)</code></pre>
+<pre><code>## $emmeans
+##  condition emmean    SE  df lower.CL upper.CL
+##  0           2.64 0.302 126     2.04     3.23
+##  1           2.76 0.291 126     2.18     3.33
+##  2           3.90 0.271 126     3.36     4.44
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## Confidence level used: 0.95 
+## 
+## $contrasts
+##  contrast estimate    SE  df t.ratio p.value
+##  0 - 1      -0.125 0.189 126  -0.662  0.5092
+##  0 - 2      -1.264 0.181 126  -6.974  &lt;.0001
+##  1 - 2      -1.139 0.178 126  -6.392  &lt;.0001
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## P value adjustment: holm method for 3 tests</code></pre>
+<p>We see that it is significantly different from both the control and prompted discussion condition.</p>
+</div>
+<div id="self-disclosure" class="section level4">
+<h4>Self-disclosure</h4>
+<p>Up next is how much participants reported actually disclosing.</p>
+<pre class="r"><code>lm_self_disclose = lm(self_disclosure_comp3~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_self_disclose) #Review the results</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = self_disclosure_comp3 ~ condition + gender_male_dummy + 
+##     race_asian + race_black + race_multiracial + race_hispanic + 
+##     section_greene + section_verbecke + section_cameron + know_prior_study + 
+##     class_know_prior, data = study1)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1.4048 -0.3794 -0.1364  0.2993  2.0953 
+## 
+## Coefficients:
+##                   Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)        1.31281    0.15954   8.229 2.20e-13 ***
+## condition1        -0.07851    0.14644  -0.536    0.593    
+## condition2         1.17168    0.13926   8.413 8.09e-14 ***
+## gender_male_dummy  0.18552    0.11624   1.596    0.113    
+## race_asian         0.23546    0.19318   1.219    0.225    
+## race_black         0.36738    0.25995   1.413    0.160    
+## race_multiracial   0.08490    0.22433   0.378    0.706    
+## race_hispanic     -0.04303    0.23605  -0.182    0.856    
+## section_greene    -0.03883    0.15959  -0.243    0.808    
+## section_verbecke   0.09457    0.17740   0.533    0.595    
+## section_cameron   -0.05944    0.14089  -0.422    0.674    
+## know_prior_study   0.14290    0.08892   1.607    0.111    
+## class_know_prior   0.03404    0.04171   0.816    0.416    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.6329 on 124 degrees of freedom
+##   (3 observations deleted due to missingness)
+## Multiple R-squared:  0.5061, Adjusted R-squared:  0.4583 
+## F-statistic: 10.59 on 12 and 124 DF,  p-value: 3.53e-14</code></pre>
+<p>Once again, the prompted disclosure condition is significantly different, but none of the covariates are. So, let’s turn to the pairwise comparison.</p>
+<pre class="r"><code>emmeans(lm_self_disclose, pairwise ~ condition, adjust= &quot;holm&quot;)</code></pre>
+<pre><code>## $emmeans
+##  condition emmean    SE  df lower.CL upper.CL
+##  0           1.86 0.234 124     1.40     2.33
+##  1           1.78 0.223 124     1.34     2.23
+##  2           3.03 0.210 124     2.62     3.45
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## Confidence level used: 0.95 
+## 
+## $contrasts
+##  contrast estimate    SE  df t.ratio p.value
+##  0 - 1      0.0785 0.146 124   0.536  0.5928
+##  0 - 2     -1.1717 0.139 124  -8.413  &lt;.0001
+##  1 - 2     -1.2502 0.138 124  -9.047  &lt;.0001
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## P value adjustment: holm method for 3 tests</code></pre>
+<p>Turns out it significantly differs from both conditions on levels of disclosure, which means we successfully manipulated self disclosure.</p>
+</div>
+<div id="group-disclosure" class="section level4">
+<h4>Group disclosure</h4>
+<pre class="r"><code>lm_group_disclose = lm(group_disclosure_comp3~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_group_disclose)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = group_disclosure_comp3 ~ condition + gender_male_dummy + 
+##     race_asian + race_black + race_multiracial + race_hispanic + 
+##     section_greene + section_verbecke + section_cameron + know_prior_study + 
+##     class_know_prior, data = study1)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1.5331 -0.3243 -0.1384  0.2519  1.5840 
+## 
+## Coefficients:
+##                    Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)        1.120192   0.149420   7.497 1.08e-11 ***
+## condition1        -0.014231   0.137151  -0.104   0.9175    
+## condition2         1.431715   0.130434  10.977  &lt; 2e-16 ***
+## gender_male_dummy  0.133072   0.108868   1.222   0.2239    
+## race_asian         0.283530   0.180928   1.567   0.1196    
+## race_black         0.460203   0.243471   1.890   0.0611 .  
+## race_multiracial  -0.009573   0.210108  -0.046   0.9637    
+## race_hispanic     -0.048573   0.221087  -0.220   0.8265    
+## section_greene     0.033655   0.149474   0.225   0.8222    
+## section_verbecke   0.181286   0.166150   1.091   0.2773    
+## section_cameron   -0.022191   0.131960  -0.168   0.8667    
+## know_prior_study   0.111730   0.083279   1.342   0.1822    
+## class_know_prior   0.054590   0.039064   1.397   0.1648    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.5928 on 124 degrees of freedom
+##   (3 observations deleted due to missingness)
+## Multiple R-squared:  0.621,  Adjusted R-squared:  0.5843 
+## F-statistic: 16.93 on 12 and 124 DF,  p-value: &lt; 2.2e-16</code></pre>
+<p>Prompted disclosure is once again significantly different.</p>
+<pre class="r"><code>emmeans(lm_group_disclose, pairwise ~ condition, adjust= &quot;holm&quot;)</code></pre>
+<pre><code>## $emmeans
+##  condition emmean    SE  df lower.CL upper.CL
+##  0           1.79 0.219 124     1.35     2.22
+##  1           1.77 0.209 124     1.36     2.19
+##  2           3.22 0.197 124     2.83     3.61
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## Confidence level used: 0.95 
+## 
+## $contrasts
+##  contrast estimate    SE  df t.ratio p.value
+##  0 - 1      0.0142 0.137 124   0.104  0.9175
+##  0 - 2     -1.4317 0.130 124 -10.977  &lt;.0001
+##  1 - 2     -1.4459 0.129 124 -11.172  &lt;.0001
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## P value adjustment: holm method for 3 tests</code></pre>
+<p>Pairwise comparisons reveal that it is different from both other conditions.</p>
+</div>
+<div id="group-talking" class="section level4">
+<h4>Group talking</h4>
+<pre class="r"><code>lm_group_talk = lm(group_talk~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_group_talk)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = group_talk ~ condition + gender_male_dummy + race_asian + 
+##     race_black + race_multiracial + race_hispanic + section_greene + 
+##     section_verbecke + section_cameron + know_prior_study + class_know_prior, 
+##     data = study1)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -2.6972 -0.6120  0.1249  0.6095  1.5779 
+## 
+## Coefficients:
+##                    Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)        3.383913   0.232234  14.571   &lt;2e-16 ***
+## condition1        -0.107569   0.211584  -0.508   0.6121    
+## condition2         0.240189   0.203397   1.181   0.2399    
+## gender_male_dummy  0.075560   0.169015   0.447   0.6556    
+## race_asian         0.066270   0.281689   0.235   0.8144    
+## race_black         0.370796   0.379362   0.977   0.3302    
+## race_multiracial   0.243218   0.327632   0.742   0.4593    
+## race_hispanic      0.001942   0.344800   0.006   0.9955    
+## section_greene    -0.393128   0.232556  -1.690   0.0934 .  
+## section_verbecke   0.128285   0.257567   0.498   0.6193    
+## section_cameron   -0.085144   0.204082  -0.417   0.6772    
+## know_prior_study   0.290606   0.129071   2.252   0.0261 *  
+## class_know_prior   0.065149   0.060712   1.073   0.2853    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.9246 on 126 degrees of freedom
+##   (1 observation deleted due to missingness)
+## Multiple R-squared:  0.1318, Adjusted R-squared:  0.04915 
+## F-statistic: 1.594 on 12 and 126 DF,  p-value: 0.1012</code></pre>
+<p>Only group members known prior is significant, suggesting that participants are talking equally across all the groups. Because of this, we don’t need the post-hoc test. But I’m running it to get the emm and coefficients, since that’s what we reported in the thesis.</p>
+<pre class="r"><code>emmeans(lm_group_talk, pairwise ~ condition, adjust= &quot;holm&quot;)</code></pre>
+<pre><code>## $emmeans
+##  condition emmean    SE  df lower.CL upper.CL
+##  0           3.86 0.340 126     3.18     4.53
+##  1           3.75 0.326 126     3.10     4.39
+##  2           4.10 0.305 126     3.49     4.70
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## Confidence level used: 0.95 
+## 
+## $contrasts
+##  contrast estimate    SE  df t.ratio p.value
+##  0 - 1       0.108 0.212 126   0.508  0.6121
+##  0 - 2      -0.240 0.203 126  -1.181  0.4797
+##  1 - 2      -0.348 0.200 126  -1.739  0.2536
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## P value adjustment: holm method for 3 tests</code></pre>
+</div>
+<div id="closeness" class="section level4">
+<h4>Closeness</h4>
+<pre class="r"><code>lm_closeness = lm(close_comp3~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_closeness)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = close_comp3 ~ condition + gender_male_dummy + race_asian + 
+##     race_black + race_multiracial + race_hispanic + section_greene + 
+##     section_verbecke + section_cameron + know_prior_study + class_know_prior, 
+##     data = study1)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.32551 -0.32985 -0.02166  0.28818  1.33266 
+## 
+## Coefficients:
+##                   Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)        2.47387    0.12729  19.435  &lt; 2e-16 ***
+## condition1        -0.18666    0.11597  -1.609 0.110016    
+## condition2         0.13087    0.11149   1.174 0.242666    
+## gender_male_dummy  0.14193    0.09264   1.532 0.128021    
+## race_asian         0.25905    0.15440   1.678 0.095861 .  
+## race_black         0.55659    0.20794   2.677 0.008423 ** 
+## race_multiracial   0.03462    0.17958   0.193 0.847446    
+## race_hispanic     -0.11401    0.18899  -0.603 0.547429    
+## section_greene     0.03229    0.12747   0.253 0.800438    
+## section_verbecke   0.28891    0.14118   2.046 0.042796 *  
+## section_cameron   -0.15539    0.11186  -1.389 0.167250    
+## know_prior_study   0.26816    0.07075   3.790 0.000232 ***
+## class_know_prior   0.05173    0.03328   1.555 0.122568    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.5068 on 126 degrees of freedom
+##   (1 observation deleted due to missingness)
+## Multiple R-squared:  0.2733, Adjusted R-squared:  0.2041 
+## F-statistic: 3.949 on 12 and 126 DF,  p-value: 3.648e-05</code></pre>
+<p>The intercept is significant, so I’d like to look more closely. Additionally, being Asian predicts greater closeness, as does one of our sections. The n are not very large for that, so it is probably an artifact of the data.</p>
+<pre class="r"><code>emmeans(lm_closeness, pairwise ~ condition, adjust= &quot;holm&quot;)</code></pre>
+<pre><code>## $emmeans
+##  condition emmean    SE  df lower.CL upper.CL
+##  0           3.23 0.186 126     2.86     3.59
+##  1           3.04 0.179 126     2.69     3.39
+##  2           3.36 0.167 126     3.03     3.69
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## Confidence level used: 0.95 
+## 
+## $contrasts
+##  contrast estimate    SE  df t.ratio p.value
+##  0 - 1       0.187 0.116 126   1.609  0.2200
+##  0 - 2      -0.131 0.111 126  -1.174  0.2427
+##  1 - 2      -0.318 0.110 126  -2.896  0.0134
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## P value adjustment: holm method for 3 tests</code></pre>
+<p>Prompted disclosure is significantly different from prompted discussion, but not different from the control.</p>
+</div>
+</div>
+<div id="belonging" class="section level3">
+<h3>Belonging</h3>
+<div id="institutional-belonging" class="section level4">
+<h4>Institutional belonging</h4>
+<pre class="r"><code>lm_school_belong = lm(school_belong_comp4~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_school_belong)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = school_belong_comp4 ~ condition + gender_male_dummy + 
+##     race_asian + race_black + race_multiracial + race_hispanic + 
+##     section_greene + section_verbecke + section_cameron + know_prior_study + 
+##     class_know_prior, data = study1)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -4.0450 -0.5279  0.2029  0.7210  2.1759 
+## 
+## Coefficients:
+##                   Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)        4.82413    0.28068  17.188  &lt; 2e-16 ***
+## condition1         0.46987    0.25572   1.837 0.068501 .  
+## condition2         0.06152    0.24582   0.250 0.802808    
+## gender_male_dummy -0.22460    0.20427  -1.100 0.273636    
+## race_asian        -1.32891    0.34045  -3.903 0.000154 ***
+## race_black        -1.26697    0.45849  -2.763 0.006579 ** 
+## race_multiracial   0.82392    0.39597   2.081 0.039482 *  
+## race_hispanic     -0.18824    0.41672  -0.452 0.652255    
+## section_greene     0.45740    0.28106   1.627 0.106155    
+## section_verbecke   0.16355    0.31129   0.525 0.600238    
+## section_cameron    0.11784    0.24665   0.478 0.633661    
+## know_prior_study   0.19782    0.15599   1.268 0.207095    
+## class_know_prior   0.23183    0.07338   3.159 0.001980 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 1.117 on 126 degrees of freedom
+##   (1 observation deleted due to missingness)
+## Multiple R-squared:  0.3209, Adjusted R-squared:  0.2562 
+## F-statistic: 4.961 on 12 and 126 DF,  p-value: 1.09e-06</code></pre>
+<p>School belonging is not predicted by condition, but it is predicted negatively by being Asian or Black, and positively by being multiracial (though this is a small n), and finally, classmates known prior is a positive predictor.</p>
+<p>Only running to get the emmeans.</p>
+<pre class="r"><code>emmeans(lm_school_belong, pairwise ~ condition, adjust= &quot;holm&quot;)</code></pre>
+<pre><code>## $emmeans
+##  condition emmean    SE  df lower.CL upper.CL
+##  0           4.67 0.410 126     3.85     5.48
+##  1           5.14 0.394 126     4.36     5.92
+##  2           4.73 0.368 126     4.00     5.46
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## Confidence level used: 0.95 
+## 
+## $contrasts
+##  contrast estimate    SE  df t.ratio p.value
+##  0 - 1     -0.4699 0.256 126  -1.837  0.2055
+##  0 - 2     -0.0615 0.246 126  -0.250  0.8028
+##  1 - 2      0.4084 0.242 126   1.689  0.2055
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## P value adjustment: holm method for 3 tests</code></pre>
+</div>
+<div id="class-belonging" class="section level4">
+<h4>Class belonging</h4>
+<pre class="r"><code>lm_class_belong = lm(class_belong_comp4~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_class_belong)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = class_belong_comp4 ~ condition + gender_male_dummy + 
+##     race_asian + race_black + race_multiracial + race_hispanic + 
+##     section_greene + section_verbecke + section_cameron + know_prior_study + 
+##     class_know_prior, data = study1)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -3.6054 -0.6097  0.1393  0.6990  1.9072 
+## 
+## Coefficients:
+##                    Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)        5.129689   0.263986  19.432  &lt; 2e-16 ***
+## condition1         0.593711   0.240512   2.469 0.014907 *  
+## condition2         0.009645   0.231206   0.042 0.966792    
+## gender_male_dummy -0.114290   0.192123  -0.595 0.552990    
+## race_asian        -0.617970   0.320202  -1.930 0.055862 .  
+## race_black         0.199557   0.431228   0.463 0.644331    
+## race_multiracial   0.033491   0.372427   0.090 0.928488    
+## race_hispanic     -0.547314   0.391941  -1.396 0.165043    
+## section_greene     0.041663   0.264351   0.158 0.875021    
+## section_verbecke  -0.041639   0.292782  -0.142 0.887134    
+## section_cameron   -0.283892   0.231984  -1.224 0.223328    
+## know_prior_study   0.094780   0.146718   0.646 0.519455    
+## class_know_prior   0.264898   0.069013   3.838 0.000195 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 1.051 on 126 degrees of freedom
+##   (1 observation deleted due to missingness)
+## Multiple R-squared:  0.2442, Adjusted R-squared:  0.1722 
+## F-statistic: 3.393 on 12 and 126 DF,  p-value: 0.0002561</code></pre>
+<p>Prompted discussion is a significant predictor, as is classmates known prior.</p>
+<pre class="r"><code>emmeans(lm_class_belong, pairwise ~ condition, adjust= &quot;holm&quot;)</code></pre>
+<pre><code>## $emmeans
+##  condition emmean    SE  df lower.CL upper.CL
+##  0           5.05 0.386 126     4.28     5.81
+##  1           5.64 0.371 126     4.91     6.38
+##  2           5.06 0.346 126     4.37     5.74
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## Confidence level used: 0.95 
+## 
+## $contrasts
+##  contrast estimate    SE  df t.ratio p.value
+##  0 - 1    -0.59371 0.241 126  -2.469  0.0341
+##  0 - 2    -0.00964 0.231 126  -0.042  0.9668
+##  1 - 2     0.58407 0.227 126   2.569  0.0341
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## P value adjustment: holm method for 3 tests</code></pre>
+<p>Prompted discussion is significantly different from both other conditions.</p>
+</div>
+</div>
+<div id="subject-area-motivation" class="section level3">
+<h3>Subject Area motivation</h3>
+<div id="intrinsic-motivation" class="section level4">
+<h4>Intrinsic motivation</h4>
+<pre class="r"><code>lm_motiv_intrins = lm(motiv_intrins_comp2~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_motiv_intrins)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = motiv_intrins_comp2 ~ condition + gender_male_dummy + 
+##     race_asian + race_black + race_multiracial + race_hispanic + 
+##     section_greene + section_verbecke + section_cameron + know_prior_study + 
+##     class_know_prior, data = study1)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.82352 -0.44296  0.00963  0.57177  1.49677 
+## 
+## Coefficients:
+##                   Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)        3.23409    0.19678  16.435  &lt; 2e-16 ***
+## condition1         0.21375    0.17929   1.192  0.23541    
+## condition2         0.03372    0.17235   0.196  0.84519    
+## gender_male_dummy -0.41057    0.14321  -2.867  0.00486 ** 
+## race_asian         0.06280    0.23869   0.263  0.79292    
+## race_black         0.54253    0.32145   1.688  0.09393 .  
+## race_multiracial   0.01513    0.27762   0.055  0.95661    
+## race_hispanic     -0.12017    0.29216  -0.411  0.68154    
+## section_greene     0.39861    0.19706   2.023  0.04521 *  
+## section_verbecke   0.32251    0.21825   1.478  0.14198    
+## section_cameron   -0.08099    0.17293  -0.468  0.64034    
+## know_prior_study  -0.03535    0.10937  -0.323  0.74708    
+## class_know_prior   0.13116    0.05144   2.550  0.01198 *  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.7835 on 126 degrees of freedom
+##   (1 observation deleted due to missingness)
+## Multiple R-squared:  0.1623, Adjusted R-squared:  0.08248 
+## F-statistic: 2.034 on 12 and 126 DF,  p-value: 0.02629</code></pre>
+<p>Intercept is significant, as is gender, in the direction that females feel more intrinsic motivation. Classmates known prior is once again a significant positive predictor.</p>
+<p>Once again, only want the emmeans since that’s what we reported.</p>
+<pre class="r"><code>emmeans(lm_motiv_intrins, pairwise ~ condition, adjust= &quot;holm&quot;)</code></pre>
+<pre><code>## $emmeans
+##  condition emmean    SE  df lower.CL upper.CL
+##  0           3.85 0.288 126     3.28     4.42
+##  1           4.06 0.276 126     3.52     4.61
+##  2           3.88 0.258 126     3.37     4.39
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## Confidence level used: 0.95 
+## 
+## $contrasts
+##  contrast estimate    SE  df t.ratio p.value
+##  0 - 1     -0.2137 0.179 126  -1.192  0.7062
+##  0 - 2     -0.0337 0.172 126  -0.196  0.8452
+##  1 - 2      0.1800 0.169 126   1.062  0.7062
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## P value adjustment: holm method for 3 tests</code></pre>
+</div>
+<div id="utility-motivation" class="section level4">
+<h4>Utility motivation</h4>
+<pre class="r"><code>lm_motiv_util = lm(motiv_util_comp3~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_motiv_util)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = motiv_util_comp3 ~ condition + gender_male_dummy + 
+##     race_asian + race_black + race_multiracial + race_hispanic + 
+##     section_greene + section_verbecke + section_cameron + know_prior_study + 
+##     class_know_prior, data = study1)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.63276 -0.44506  0.01275  0.48985  1.88200 
+## 
+## Coefficients:
+##                    Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)        2.983562   0.180599  16.520  &lt; 2e-16 ***
+## condition1         0.447569   0.164540   2.720  0.00745 ** 
+## condition2         0.291296   0.158173   1.842  0.06788 .  
+## gender_male_dummy -0.350804   0.131436  -2.669  0.00861 ** 
+## race_asian         0.183681   0.219058   0.839  0.40334    
+## race_black         0.597377   0.295013   2.025  0.04499 *  
+## race_multiracial   0.154873   0.254786   0.608  0.54438    
+## race_hispanic     -0.046689   0.268136  -0.174  0.86205    
+## section_greene     0.368042   0.180849   2.035  0.04394 *  
+## section_verbecke   0.530035   0.200299   2.646  0.00918 ** 
+## section_cameron   -0.027918   0.158706  -0.176  0.86064    
+## know_prior_study   0.009377   0.100373   0.093  0.92572    
+## class_know_prior   0.106244   0.047213   2.250  0.02616 *  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.719 on 126 degrees of freedom
+##   (1 observation deleted due to missingness)
+## Multiple R-squared:  0.2388, Adjusted R-squared:  0.1663 
+## F-statistic: 3.295 on 12 and 126 DF,  p-value: 0.000361</code></pre>
+<p>Prompted discussion is a significant predictor, as is being female, being black, and classmates known prior. Two classes are significant predictors of utility motivation (go those professors)</p>
+<pre class="r"><code>emmeans(lm_motiv_util, pairwise ~ condition, adjust= &quot;holm&quot;)</code></pre>
+<pre><code>## $emmeans
+##  condition emmean    SE  df lower.CL upper.CL
+##  0           3.91 0.264 126     3.39     4.43
+##  1           4.36 0.254 126     3.85     4.86
+##  2           4.20 0.237 126     3.73     4.67
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## Confidence level used: 0.95 
+## 
+## $contrasts
+##  contrast estimate    SE  df t.ratio p.value
+##  0 - 1      -0.448 0.165 126  -2.720  0.0223
+##  0 - 2      -0.291 0.158 126  -1.842  0.1358
+##  1 - 2       0.156 0.156 126   1.005  0.3170
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## P value adjustment: holm method for 3 tests</code></pre>
+<p>Prompted discussion is significantly different from the control, being .448 points higher than the control.</p>
+</div>
+<div id="quiz-performance" class="section level4">
+<h4>Quiz performance</h4>
+<pre class="r"><code>lm_quiz_average = lm(quiz_average~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_quiz_average)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = quiz_average ~ condition + gender_male_dummy + race_asian + 
+##     race_black + race_multiracial + race_hispanic + section_greene + 
+##     section_verbecke + section_cameron + know_prior_study + class_know_prior, 
+##     data = study1)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.33731 -0.08179  0.01730  0.10176  0.26527 
+## 
+## Coefficients:
+##                    Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)        0.722710   0.035163  20.553  &lt; 2e-16 ***
+## condition1         0.014368   0.032036   0.448  0.65457    
+## condition2         0.023185   0.030797   0.753  0.45295    
+## gender_male_dummy  0.006757   0.025591   0.264  0.79217    
+## race_asian        -0.047758   0.042651  -1.120  0.26496    
+## race_black        -0.079733   0.057440  -1.388  0.16755    
+## race_multiracial   0.093007   0.049607   1.875  0.06313 .  
+## race_hispanic     -0.070234   0.052207  -1.345  0.18094    
+## section_greene    -0.039049   0.035212  -1.109  0.26955    
+## section_verbecke  -0.045632   0.038999  -1.170  0.24418    
+## section_cameron   -0.087785   0.030900  -2.841  0.00525 ** 
+## know_prior_study  -0.025466   0.019543  -1.303  0.19492    
+## class_know_prior   0.006406   0.009193   0.697  0.48714    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.14 on 126 degrees of freedom
+##   (1 observation deleted due to missingness)
+## Multiple R-squared:  0.1056, Adjusted R-squared:  0.02038 
+## F-statistic: 1.239 on 12 and 126 DF,  p-value: 0.2637</code></pre>
+<p>The overall model is significant, but the only predictor is Dr. Cameron’s class. There is not a significant difference on the scores across conditions.</p>
+<pre class="r"><code>emmeans(lm_quiz_average, pairwise ~ condition, adjust= &quot;holm&quot;)</code></pre>
+<pre><code>## $emmeans
+##  condition emmean     SE  df lower.CL upper.CL
+##  0          0.589 0.0514 126    0.487    0.690
+##  1          0.603 0.0494 126    0.505    0.701
+##  2          0.612 0.0461 126    0.521    0.703
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## Confidence level used: 0.95 
+## 
+## $contrasts
+##  contrast estimate     SE  df t.ratio p.value
+##  0 - 1    -0.01437 0.0320 126  -0.448  1.0000
+##  0 - 2    -0.02318 0.0308 126  -0.753  1.0000
+##  1 - 2    -0.00882 0.0303 126  -0.291  1.0000
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## P value adjustment: holm method for 3 tests</code></pre>
+</div>
+</div>
+<div id="exploratory-analyses-not-done-yet" class="section level3">
+<h3>Exploratory analyses NOT DONE YET</h3>
+<div id="thinking-deeper" class="section level4">
+<h4>Thinking deeper</h4>
+<pre class="r"><code>lm_manip_help_think = lm(manip_help_think~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_manip_help_think)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = manip_help_think ~ condition + gender_male_dummy + 
+##     race_asian + race_black + race_multiracial + race_hispanic + 
+##     section_greene + section_verbecke + section_cameron + know_prior_study + 
+##     class_know_prior, data = study1)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -2.26547 -0.23808  0.04492  0.72104  1.34248 
+## 
+## Coefficients:
+##                   Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)        3.92263    0.21181  18.520   &lt;2e-16 ***
+## condition1        -0.03267    0.19298  -0.169   0.8658    
+## condition2         0.00447    0.18551   0.024   0.9808    
+## gender_male_dummy -0.08869    0.15415  -0.575   0.5661    
+## race_asian         0.34583    0.25692   1.346   0.1807    
+## race_black        -0.12793    0.34600  -0.370   0.7122    
+## race_multiracial  -0.46053    0.29882  -1.541   0.1258    
+## race_hispanic      0.66173    0.31448   2.104   0.0373 *  
+## section_greene    -0.08699    0.21210  -0.410   0.6824    
+## section_verbecke  -0.10052    0.23491  -0.428   0.6694    
+## section_cameron   -0.10451    0.18613  -0.561   0.5755    
+## know_prior_study   0.02136    0.11772   0.181   0.8563    
+## class_know_prior   0.06848    0.05537   1.237   0.2185    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.8433 on 126 degrees of freedom
+##   (1 observation deleted due to missingness)
+## Multiple R-squared:  0.05675,    Adjusted R-squared:  -0.03308 
+## F-statistic: 0.6317 on 12 and 126 DF,  p-value: 0.8119</code></pre>
+<p>None of the conditions are significant, though hispanic did come out as significant.</p>
+<pre class="r"><code>emmeans(lm_manip_help_think, pairwise ~ condition, adjust= &quot;holm&quot;)</code></pre>
+<pre><code>## $emmeans
+##  condition emmean    SE  df lower.CL upper.CL
+##  0           4.09 0.310 126     3.48     4.70
+##  1           4.06 0.298 126     3.47     4.65
+##  2           4.10 0.278 126     3.55     4.65
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## Confidence level used: 0.95 
+## 
+## $contrasts
+##  contrast estimate    SE  df t.ratio p.value
+##  0 - 1     0.03267 0.193 126   0.169  1.0000
+##  0 - 2    -0.00447 0.186 126  -0.024  1.0000
+##  1 - 2    -0.03714 0.182 126  -0.204  1.0000
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## P value adjustment: holm method for 3 tests</code></pre>
+</div>
+<div id="similarity-to-class" class="section level4">
+<h4>Similarity to class</h4>
+<pre class="r"><code>lm_class_similar = lm(class_similar_comp2~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_class_similar)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = class_similar_comp2 ~ condition + gender_male_dummy + 
+##     race_asian + race_black + race_multiracial + race_hispanic + 
+##     section_greene + section_verbecke + section_cameron + know_prior_study + 
+##     class_know_prior, data = study1)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -2.69175 -0.48751  0.09798  0.61385  1.69273 
+## 
+## Coefficients:
+##                   Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)        3.46857    0.22094  15.699  &lt; 2e-16 ***
+## condition1         0.30000    0.20129   1.490  0.13862    
+## condition2        -0.55624    0.19350  -2.875  0.00475 ** 
+## gender_male_dummy -0.15121    0.16079  -0.940  0.34882    
+## race_asian        -0.15964    0.26799  -0.596  0.55245    
+## race_black         0.66977    0.36091   1.856  0.06582 .  
+## race_multiracial  -0.52001    0.31169  -1.668  0.09773 .  
+## race_hispanic      0.38626    0.32803   1.178  0.24121    
+## section_greene     0.49552    0.22124   2.240  0.02686 *  
+## section_verbecke   0.55459    0.24504   2.263  0.02533 *  
+## section_cameron   -0.19112    0.19415  -0.984  0.32683    
+## know_prior_study  -0.05992    0.12279  -0.488  0.62643    
+## class_know_prior   0.09472    0.05776   1.640  0.10353    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.8796 on 126 degrees of freedom
+##   (1 observation deleted due to missingness)
+## Multiple R-squared:  0.2452, Adjusted R-squared:  0.1733 
+## F-statistic: 3.411 on 12 and 126 DF,  p-value: 0.0002405</code></pre>
+<p>Prompted disclosure is significantly different, as are Greene and Verbecke once more. These two have low n’s, so we should be cautious in considering these (and were in my thesis, so I’m going to focus on what we did there).</p>
+<pre class="r"><code>emmeans(lm_class_similar, pairwise ~ condition, adjust= &quot;holm&quot;)</code></pre>
+<pre><code>## $emmeans
+##  condition emmean    SE  df lower.CL upper.CL
+##  0           4.18 0.323 126     3.54     4.81
+##  1           4.48 0.310 126     3.86     5.09
+##  2           3.62 0.290 126     3.05     4.19
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## Confidence level used: 0.95 
+## 
+## $contrasts
+##  contrast estimate    SE  df t.ratio p.value
+##  0 - 1      -0.300 0.201 126  -1.490  0.1386
+##  0 - 2       0.556 0.194 126   2.875  0.0095
+##  1 - 2       0.856 0.190 126   4.500  &lt;.0001
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## P value adjustment: holm method for 3 tests</code></pre>
+<p>The prompted disclosure condition is significantly different than both conditions.</p>
+</div>
+<div id="task-enjoyment" class="section level4">
+<h4>Task enjoyment</h4>
+<pre class="r"><code>lm_group_enjoy = lm(group_engagement_comp3~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_group_enjoy)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = group_engagement_comp3 ~ condition + gender_male_dummy + 
+##     race_asian + race_black + race_multiracial + race_hispanic + 
+##     section_greene + section_verbecke + section_cameron + know_prior_study + 
+##     class_know_prior, data = study1)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.83373 -0.44903  0.00496  0.47881  1.98578 
+## 
+## Coefficients:
+##                   Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)        2.77384    0.19068  14.547   &lt;2e-16 ***
+## condition1        -0.26229    0.17372  -1.510   0.1336    
+## condition2         0.18336    0.16700   1.098   0.2743    
+## gender_male_dummy -0.02603    0.13877  -0.188   0.8515    
+## race_asian         0.58119    0.23128   2.513   0.0132 *  
+## race_black         0.45049    0.31148   1.446   0.1506    
+## race_multiracial   0.09310    0.26901   0.346   0.7299    
+## race_hispanic      0.12730    0.28310   0.450   0.6537    
+## section_greene    -0.15609    0.19094  -0.817   0.4152    
+## section_verbecke   0.42289    0.21148   2.000   0.0477 *  
+## section_cameron   -0.25900    0.16756  -1.546   0.1247    
+## know_prior_study   0.16417    0.10598   1.549   0.1238    
+## class_know_prior   0.07901    0.04985   1.585   0.1155    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.7592 on 126 degrees of freedom
+##   (1 observation deleted due to missingness)
+## Multiple R-squared:  0.202,  Adjusted R-squared:  0.126 
+## F-statistic: 2.658 on 12 and 126 DF,  p-value: 0.003288</code></pre>
+<p>The overall model is significant, as is being Asian.</p>
+<pre class="r"><code>emmeans(lm_group_enjoy, pairwise ~ condition, adjust= &quot;holm&quot;)</code></pre>
+<pre><code>## $emmeans
+##  condition emmean    SE  df lower.CL upper.CL
+##  0           3.63 0.279 126     3.08     4.18
+##  1           3.37 0.268 126     2.84     3.90
+##  2           3.81 0.250 126     3.32     4.31
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## Confidence level used: 0.95 
+## 
+## $contrasts
+##  contrast estimate    SE  df t.ratio p.value
+##  0 - 1       0.262 0.174 126   1.510  0.2672
+##  0 - 2      -0.183 0.167 126  -1.098  0.2743
+##  1 - 2      -0.446 0.164 126  -2.714  0.0228
+## 
+## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
+## P value adjustment: holm method for 3 tests</code></pre>
+<p>Prompted discussion is significantly different from disclosure, but the control is not significantly different from either.</p>
+</div>
 </div>
 </div>
 <div id="wrapping-up" class="section level2">
 <h2>Wrapping up</h2>
+<p>That finishes up all of the analyses! But there’s a lot of information here, that would be good to make sense of. Portfolio 7 will make graphs for all of the variables of interest, and then portfolio 8 will put all the information together in a presentable way.</p>
 </div>
 
 

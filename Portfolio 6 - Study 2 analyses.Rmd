@@ -95,6 +95,8 @@ class belonging and utility motivation
 Utility motivation and intrinsic motivation
     r=.65, p<.001.
     
+    
+    
 #### Disclosure
 
 This is the measure of how much participants though the questions asked them to disclose.
@@ -129,6 +131,7 @@ emmeans(lm_disclose, pairwise ~ condition, adjust= "holm")
 We see that it is significantly different from both the control and prompted discussion condition.
 
 
+
 #### Self-disclosure
 
 Up next is how much participants reported actually disclosing.
@@ -147,7 +150,7 @@ summary(lm_self_disclose) #Review the results
 Once again, the prompted disclosure condition is significantly different, but none of the covariates are. So, let's turn to the pairwise comparison.
 
 
-```{r post-hoc disclosure}
+```{r post-hoc self-disclosure}
 emmeans(lm_self_disclose, pairwise ~ condition, adjust= "holm")
 
 ```
@@ -158,9 +161,279 @@ Turns out it significantly differs from both conditions on levels of disclosure,
 
 #### Group disclosure
 
+```{r group disclose model}
+lm_group_disclose = lm(group_disclosure_comp3~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
 
+
+summary(lm_group_disclose)
+
+```
+
+Prompted disclosure is once again significantly different.
+
+
+```{r post-hoc group disclosure}
+emmeans(lm_group_disclose, pairwise ~ condition, adjust= "holm")
+
+```
+
+Pairwise comparisons reveal that it is different from both other conditions.
+
+
+
+#### Group talking
+
+```{r group talking model}
+lm_group_talk = lm(group_talk~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_group_talk)
+
+```
+
+Only group members known prior is significant, suggesting that participants are talking equally across all the groups. Because of this, we don't need the post-hoc test. But I'm running it to get the emm and coefficients, since that's what we reported in the thesis.
+
+
+```{r post-hoc group talking}
+emmeans(lm_group_talk, pairwise ~ condition, adjust= "holm")
+
+```
+
+
+
+#### Closeness
+
+```{r closeness model}
+lm_closeness = lm(close_comp3~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_closeness)
+
+```
+
+The intercept is significant, so I'd like to look more closely. Additionally, being Asian predicts greater closeness, as does one of our sections. The n are not very large for that, so it is probably an artifact of the data.
+
+
+```{r post-hoc closeness}
+emmeans(lm_closeness, pairwise ~ condition, adjust= "holm")
+
+```
+
+Prompted disclosure is significantly different from prompted discussion, but not different from the control.
+
+
+
+### Belonging
+
+
+#### Institutional belonging
+
+```{r institutional belonging model}
+lm_school_belong = lm(school_belong_comp4~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_school_belong)
+
+```
+
+School belonging is not predicted by condition, but it is predicted negatively by being Asian or Black, and positively by being multiracial (though this is a small n), and finally, classmates known prior is a positive predictor.
+
+Only running to get the emmeans.
+
+
+```{r post-hoc institutional belonging}
+emmeans(lm_school_belong, pairwise ~ condition, adjust= "holm")
+
+```
+
+
+
+#### Class belonging
+
+```{r class belonging model}
+lm_class_belong = lm(class_belong_comp4~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_class_belong)
+
+```
+
+Prompted discussion is a significant predictor, as is classmates known prior.
+
+
+```{r post-hoc class belonging}
+emmeans(lm_class_belong, pairwise ~ condition, adjust= "holm")
+
+```
+
+Prompted discussion is significantly different from both other conditions.
+
+
+
+### Subject Area motivation
+
+#### Intrinsic motivation
+
+```{r intrinsic motivation model}
+lm_motiv_intrins = lm(motiv_intrins_comp2~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_motiv_intrins)
+
+```
+
+Intercept is significant, as is gender, in the direction that females feel more intrinsic motivation. Classmates known prior is once again a significant positive predictor.
+
+Once again, only want the emmeans since that's what we reported.
+
+
+```{r post-hoc intrinsic motivation}
+emmeans(lm_motiv_intrins, pairwise ~ condition, adjust= "holm")
+
+```
+
+
+
+#### Utility motivation
+
+```{r utility motivation model}
+lm_motiv_util = lm(motiv_util_comp3~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_motiv_util)
+
+```
+
+Prompted discussion is a significant predictor, as is being female, being black, and classmates known prior. Two classes are significant predictors of utility motivation (go those professors)
+
+
+```{r post-hoc utility motivation}
+emmeans(lm_motiv_util, pairwise ~ condition, adjust= "holm")
+
+```
+
+Prompted discussion is significantly different from the control, being .448 points higher than the control.
+
+
+
+#### Quiz performance
+
+```{r quiz score model}
+lm_quiz_average = lm(quiz_average~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_quiz_average)
+
+```
+
+The overall model is significant, but the only predictor is Dr. Cameron's class. There is not a significant difference on the scores across conditions.
+
+```{r post-hoc quiz score}
+emmeans(lm_quiz_average, pairwise ~ condition, adjust= "holm")
+
+```
+
+
+### Exploratory analyses
+
+
+#### Thinking deeper
+
+```{r thinking deeper model}
+lm_manip_help_think = lm(manip_help_think~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_manip_help_think)
+
+```
+
+None of the conditions are significant, though hispanic did come out as significant.
+
+
+```{r thinking deeper score}
+emmeans(lm_manip_help_think, pairwise ~ condition, adjust= "holm")
+
+```
+
+
+
+#### Similarity to class
+
+```{r similarity model}
+lm_class_similar = lm(class_similar_comp2~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_class_similar)
+
+```
+
+Prompted disclosure is significantly different, as are Greene and Verbecke once more. These two have low n's, so we should be cautious in considering these (and were in my thesis, so I'm going to focus on what we did there).
+
+
+```{r similarity score}
+emmeans(lm_class_similar, pairwise ~ condition, adjust= "holm")
+
+```
+
+The prompted disclosure condition is significantly different than both conditions.
+
+
+
+#### Task enjoyment
+
+```{r enjoyment model}
+lm_group_enjoy = lm(group_engagement_comp3~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_group_enjoy)
+
+```
+
+The overall model is significant, as is being Asian.
+
+
+```{r enjoyment score}
+emmeans(lm_group_enjoy, pairwise ~ condition, adjust= "holm")
+
+```
+
+Prompted discussion is significantly different from disclosure, but the control is not significantly different from either.
 
 
 
 ## Wrapping up
 
+That finishes up all of the analyses! But there's a lot of information here, that would be good to make sense of. Portfolio 7 will make graphs for all of the variables of interest, and then portfolio 8 will put all the information together in a presentable way.
