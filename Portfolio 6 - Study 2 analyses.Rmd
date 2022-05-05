@@ -22,6 +22,7 @@ library('tidyverse')
 library('Hmisc')
 library('Rcpp')
 library('readr')
+library('emmeans')
 ```
 
 
@@ -45,6 +46,8 @@ Dropping this from my thesis so we know where we're going.
 
 >For each hypothesis, I had originally intended to conduct a multi-level model with group as a random effect, nesting participant responses within their study session. However, initial analyses suggested that multi-level models were unnecessarily complex; session accounted for very little variance across the different outcomes. Therefore, I decided to run a simplified linear regression models with dummy codes to account for students’ Introductory Psychology instructor.  That said, the results from both the multi-level models and the models presented here are very similar. I included the following covariates in all models: gender (dummy coded with women as the reference class), race (dummy coded with White as the reference class), number of group members known prior to the study, and number of classmates known prior to the study. When the omnibus test of condition was significant, I then conducted post-hoc tests to compare each of the conditions with each other, using Sidak correction to correct for multiple comparisons.
 
+
+
 Put another way, we're doing simplified linear regression models.
 
 Hypotheses:
@@ -59,11 +62,20 @@ H4: Students in the prompted disclosure condition will score higher on the quiz 
 
 
 
-#### Preliminary analyses
+### Preliminary analyses
 
-##### Correlations
+Repeat from portfolio 5, because I really need this to be correct.
+```{r ensuring condition is character vector}
+study1$condition <- as.character(study1$condition)
 
-The bivariate correlations for the variables of interest. First, without accounting for condition
+class(study1$condition)
+```
+
+>Important note: 0 is control, 1 is prompted discussion, and 2 is prompted disclosure.
+
+#### Correlations
+
+The bivariate correlations for the variables of interest.
 
 ```{r all conditions bivariate correlations}
 correlations <- study1 %>%
@@ -74,23 +86,81 @@ rcorr(as.matrix(correlations))
 ```
 
 Class and institutional belonging are correlated, and both levels of motivation are correlated with class belonging.
-class belonging and school belonging.
-    * r=.463, p=.001
-class belonging and utility motivation.
-    * r=.433, p=.002
-Utility motviation and intrinsic motivation, no correlations.
-    * r=.176, p=.221.
+class belonging and school belonging
+    r=.41, p<.001
+class belonging and intrinsic motivation
+    r=.52, p<.001
+class belonging and utility motivation
+    r=.44, p<.001
+Utility motivation and intrinsic motivation
+    r=.65, p<.001.
+    
+#### Disclosure
 
-```{r correlation by condition}
-correlations_con <- study1 %>%
-        select(class_belong_comp4, school_belong_comp4, motiv_intrins_comp2, motiv_util_comp3, condition)
+This is the measure of how much participants though the questions asked them to disclose.
 
-rcorr(as.matrix(correlations))
+```{r disclose model}
+lm_disclose = lm(manip_check_comp2~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
 
-study1 %>%
-        filter(is.na(demog_gender_female), is.na(demog_gender_male)) %>%
-        count(demog_gender_trans, demog_gender_twospirit, demog_gender_genderqueer, demog_gender_other, demog_gender_no_answer)
+
+summary(lm_disclose) #Review the results
+
 ```
+
+The first line of code is the creation of the linear model.
+
+First, we give it a name (lm_disclose). Then, we use the lm command to run the model, with the target variable followed by the predictors.
+Then, the last line is the dataset that is being used.
+
+Once that's done, we run summary to find out the results.
+
+We found that condition was a significant predictor, as was asian, and group members known prior. 
+
+Specifically, we see that the experimental condition is significantly different. But we want to look at the pairwise comparisons to look at how it differs from the other conditions.
+
+```{r post-hoc disclosure}
+emmeans(lm_disclose, pairwise ~ condition, adjust= "holm")
+
+```
+
+We see that it is significantly different from both the control and prompted discussion condition.
+
+
+#### Self-disclosure
+
+Up next is how much participants reported actually disclosing.
+
+```{r self disclose model}
+lm_self_disclose = lm(self_disclosure_comp3~ condition + gender_male_dummy + race_asian + race_black + 
+    race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
+    class_know_prior,
+                     data = study1)
+
+
+summary(lm_self_disclose) #Review the results
+
+```
+
+Once again, the prompted disclosure condition is significantly different, but none of the covariates are. So, let's turn to the pairwise comparison.
+
+
+```{r post-hoc disclosure}
+emmeans(lm_self_disclose, pairwise ~ condition, adjust= "holm")
+
+```
+
+Turns out it significantly differs from both conditions on levels of disclosure, which means we successfully manipulated self disclosure.
+
+
+
+#### Group disclosure
+
+
+
 
 
 ## Wrapping up
+
