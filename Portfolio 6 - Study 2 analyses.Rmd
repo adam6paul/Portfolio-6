@@ -207,6 +207,8 @@ emmeans(lm_group_talk, pairwise ~ condition, adjust= "holm")
 
 
 
+## Primary analyses
+
 #### Closeness
 
 ```{r closeness model}
