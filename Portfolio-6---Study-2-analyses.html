@@ -236,8 +236,9 @@ as_tibble(study1)
 #Taking a look at the table.
 View(study1)</code></pre>
 </div>
-<div id="analyses" class="section level3">
-<h3>Analyses!</h3>
+</div>
+<div id="analyses" class="section level2">
+<h2>Analyses!</h2>
 <p>Dropping this from my thesis so we know where we’re going.</p>
 <blockquote>
 <p>For each hypothesis, I had originally intended to conduct a multi-level model with group as a random effect, nesting participant responses within their study session. However, initial analyses suggested that multi-level models were unnecessarily complex; session accounted for very little variance across the different outcomes. Therefore, I decided to run a simplified linear regression models with dummy codes to account for students’ Introductory Psychology instructor. That said, the results from both the multi-level models and the models presented here are very similar. I included the following covariates in all models: gender (dummy coded with women as the reference class), race (dummy coded with White as the reference class), number of group members known prior to the study, and number of classmates known prior to the study. When the omnibus test of condition was significant, I then conducted post-hoc tests to compare each of the conditions with each other, using Sidak correction to correct for multiple comparisons.</p>
@@ -248,7 +249,6 @@ View(study1)</code></pre>
 <p>H2: Students in the prompted disclosure condition will report greater subject area motivation than students in either the prompted discussion or control conditions.</p>
 <p>H3: Students in the prompted disclosure condition will feel closer to their groupmates than students in either the prompted discussion or control conditions.</p>
 <p>H4: Students in the prompted disclosure condition will score higher on the quiz than students in either the prompted discussion or control conditions.</p>
-</div>
 <div id="preliminary-analyses" class="section level3">
 <h3>Preliminary analyses</h3>
 <p>Repeat from portfolio 5, because I really need this to be correct.</p>
@@ -259,8 +259,9 @@ class(study1$condition)</code></pre>
 <blockquote>
 <p>Important note: 0 is control, 1 is prompted discussion, and 2 is prompted disclosure.</p>
 </blockquote>
-<div id="correlations" class="section level4">
-<h4>Correlations</h4>
+</div>
+<div id="correlations" class="section level3">
+<h3>Correlations</h3>
 <p>The bivariate correlations for the variables of interest.</p>
 <pre class="r"><code>correlations &lt;- study1 %&gt;%
         select(class_belong_comp4, school_belong_comp4, motiv_intrins_comp2, motiv_util_comp3)
@@ -291,11 +292,19 @@ rcorr(as.matrix(correlations))</code></pre>
 ## school_belong_comp4 0.0844          
 ## motiv_intrins_comp2 0.0000          
 ## motiv_util_comp3</code></pre>
-<p>Class and institutional belonging are correlated, and both levels of motivation are correlated with class belonging. class belonging and school belonging r=.41, p&lt;.001 class belonging and intrinsic motivation r=.52, p&lt;.001 class belonging and utility motivation r=.44, p&lt;.001 Utility motivation and intrinsic motivation r=.65, p&lt;.001.</p>
+<p>Class and institutional belonging are correlated, and both levels of motivation are correlated with class belonging.</p>
+<p>class belonging and school belonging r=.41, p&lt;.001</p>
+<p>class belonging and intrinsic motivation r=.52, p&lt;.001</p>
+<p>class belonging and utility motivation r=.44, p&lt;.001</p>
+<p>Utility motivation and intrinsic motivation r=.65, p&lt;.001.</p>
 </div>
-<div id="disclosure" class="section level4">
-<h4>Disclosure</h4>
+<div id="disclosure" class="section level3">
+<h3>Disclosure</h3>
 <p>This is the measure of how much participants though the questions asked them to disclose.</p>
+<p>This marks how the code below works:</p>
+<p>The first line of code is the creation of the linear model.</p>
+<p>First, we give it a name (lm_disclose). Then, we use the lm command to run the model, with the target variable followed by the predictors. Then, the last line is the dataset that is being used.</p>
+<p>Once that’s done, we run summary to find out the results.</p>
 <pre class="r"><code>lm_disclose = lm(manip_check_comp2~ condition + gender_male_dummy + race_asian + race_black + 
     race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
     class_know_prior,
@@ -336,10 +345,9 @@ summary(lm_disclose) #Review the results</code></pre>
 ##   (1 observation deleted due to missingness)
 ## Multiple R-squared:  0.3953, Adjusted R-squared:  0.3377 
 ## F-statistic: 6.864 on 12 and 126 DF,  p-value: 1.968e-09</code></pre>
-<p>The first line of code is the creation of the linear model.</p>
-<p>First, we give it a name (lm_disclose). Then, we use the lm command to run the model, with the target variable followed by the predictors. Then, the last line is the dataset that is being used.</p>
-<p>Once that’s done, we run summary to find out the results.</p>
-<p>We found that condition was a significant predictor, as was asian, and group members known prior.</p>
+<p>We found that condition was a significant predictor, as was Asian, and group members known prior.</p>
+<p>Asian B=.524, SE=.251, p=.039</p>
+<p>Group members known B=.233, SE=.115, p=.045</p>
 <p>Specifically, we see that the experimental condition is significantly different. But we want to look at the pairwise comparisons to look at how it differs from the other conditions.</p>
 <pre class="r"><code>emmeans(lm_disclose, pairwise ~ condition, adjust= &quot;holm&quot;)</code></pre>
 <pre><code>## $emmeans
@@ -361,8 +369,8 @@ summary(lm_disclose) #Review the results</code></pre>
 ## P value adjustment: holm method for 3 tests</code></pre>
 <p>We see that it is significantly different from both the control and prompted discussion condition.</p>
 </div>
-<div id="self-disclosure" class="section level4">
-<h4>Self-disclosure</h4>
+<div id="self-disclosure" class="section level3">
+<h3>Self-disclosure</h3>
 <p>Up next is how much participants reported actually disclosing.</p>
 <pre class="r"><code>lm_self_disclose = lm(self_disclosure_comp3~ condition + gender_male_dummy + race_asian + race_black + 
     race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
@@ -423,10 +431,12 @@ summary(lm_self_disclose) #Review the results</code></pre>
 ## 
 ## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
 ## P value adjustment: holm method for 3 tests</code></pre>
-<p>Turns out it significantly differs from both conditions on levels of disclosure, which means we successfully manipulated self disclosure.</p>
+<p>Students reported actually disclosing more in the prompted disclosure condition than either of the other two conditions:</p>
+<p>Control: B= -1.172, SE= 0.139, p&lt;.001</p>
+<p>Prompted discussion: B= -1.250, SE= 0.138, p&lt;.001</p>
 </div>
-<div id="group-disclosure" class="section level4">
-<h4>Group disclosure</h4>
+<div id="group-disclosure" class="section level3">
+<h3>Group disclosure</h3>
 <pre class="r"><code>lm_group_disclose = lm(group_disclosure_comp3~ condition + gender_male_dummy + race_asian + race_black + 
     race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
     class_know_prior,
@@ -467,7 +477,7 @@ summary(lm_group_disclose)</code></pre>
 ##   (3 observations deleted due to missingness)
 ## Multiple R-squared:  0.621,  Adjusted R-squared:  0.5843 
 ## F-statistic: 16.93 on 12 and 124 DF,  p-value: &lt; 2.2e-16</code></pre>
-<p>Prompted disclosure is once again significantly different.</p>
+<p>There is a significant difference of condition, so let’s look at the post-hoc tests.</p>
 <pre class="r"><code>emmeans(lm_group_disclose, pairwise ~ condition, adjust= &quot;holm&quot;)</code></pre>
 <pre><code>## $emmeans
 ##  condition emmean    SE  df lower.CL upper.CL
@@ -486,10 +496,12 @@ summary(lm_group_disclose)</code></pre>
 ## 
 ## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
 ## P value adjustment: holm method for 3 tests</code></pre>
-<p>Pairwise comparisons reveal that it is different from both other conditions.</p>
+<p>Students reported that their groups disclosed more to them in the prompted disclosure condition than either of the other two conditions:</p>
+<p>Control: B= -1.432, SE= 0.130, p&lt;.001</p>
+<p>Prompted discussion: B= -1.446, SE= 0.129, p&lt;.001</p>
 </div>
-<div id="group-talking" class="section level4">
-<h4>Group talking</h4>
+<div id="group-talking" class="section level3">
+<h3>Group talking</h3>
 <pre class="r"><code>lm_group_talk = lm(group_talk~ condition + gender_male_dummy + race_asian + race_black + 
     race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
     class_know_prior,
@@ -550,8 +562,11 @@ summary(lm_group_talk)</code></pre>
 ## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
 ## P value adjustment: holm method for 3 tests</code></pre>
 </div>
-<div id="closeness" class="section level4">
-<h4>Closeness</h4>
+</div>
+<div id="primary-analyses" class="section level2">
+<h2>Primary analyses</h2>
+<div id="closeness" class="section level3">
+<h3>Closeness</h3>
 <pre class="r"><code>lm_closeness = lm(close_comp3~ condition + gender_male_dummy + race_asian + race_black + 
     race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
     class_know_prior,
@@ -592,7 +607,8 @@ summary(lm_closeness)</code></pre>
 ##   (1 observation deleted due to missingness)
 ## Multiple R-squared:  0.2733, Adjusted R-squared:  0.2041 
 ## F-statistic: 3.949 on 12 and 126 DF,  p-value: 3.648e-05</code></pre>
-<p>The intercept is significant, so I’d like to look more closely. Additionally, being Asian predicts greater closeness, as does one of our sections. The n are not very large for that, so it is probably an artifact of the data.</p>
+<p>The intercept is significant, so I’d like to look more closely. Additionally, being Black predicts greater closeness, as does one of our sections. The n are not very large for that, so it is probably an artifact of the data.</p>
+<p>Black Est=.557, SE=.208, p=.008</p>
 <pre class="r"><code>emmeans(lm_closeness, pairwise ~ condition, adjust= &quot;holm&quot;)</code></pre>
 <pre><code>## $emmeans
 ##  condition emmean    SE  df lower.CL upper.CL
@@ -611,13 +627,14 @@ summary(lm_closeness)</code></pre>
 ## 
 ## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
 ## P value adjustment: holm method for 3 tests</code></pre>
-<p>Prompted disclosure is significantly different from prompted discussion, but not different from the control.</p>
+<p>Students reported feeling closer to their groupmates in the prompted disclosure condition than in the prompted discussion condition. However, the difference was not significant between either and the control.</p>
+<p>Prompted discussion (B= -0.318, SE= 0.110, p=.013)</p>
 </div>
 </div>
-<div id="belonging" class="section level3">
-<h3>Belonging</h3>
-<div id="institutional-belonging" class="section level4">
-<h4>Institutional belonging</h4>
+<div id="belonging" class="section level2">
+<h2>Belonging</h2>
+<div id="school-belonging" class="section level3">
+<h3>School belonging</h3>
 <pre class="r"><code>lm_school_belong = lm(school_belong_comp4~ condition + gender_male_dummy + race_asian + race_black + 
     race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
     class_know_prior,
@@ -659,7 +676,10 @@ summary(lm_school_belong)</code></pre>
 ## Multiple R-squared:  0.3209, Adjusted R-squared:  0.2562 
 ## F-statistic: 4.961 on 12 and 126 DF,  p-value: 1.09e-06</code></pre>
 <p>School belonging is not predicted by condition, but it is predicted negatively by being Asian or Black, and positively by being multiracial (though this is a small n), and finally, classmates known prior is a positive predictor.</p>
-<p>Only running to get the emmeans.</p>
+<p>Asian Est= -1.329, SE=.340, p&lt;.001</p>
+<p>Black Est= -1.267, SE=.458, p=.007</p>
+<p>Multiracial Est= 0.824, SE=.396, p=.039</p>
+<p>Classmates known Est= 0.232, SE=.073, p=.002</p>
 <pre class="r"><code>emmeans(lm_school_belong, pairwise ~ condition, adjust= &quot;holm&quot;)</code></pre>
 <pre><code>## $emmeans
 ##  condition emmean    SE  df lower.CL upper.CL
@@ -679,8 +699,8 @@ summary(lm_school_belong)</code></pre>
 ## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
 ## P value adjustment: holm method for 3 tests</code></pre>
 </div>
-<div id="class-belonging" class="section level4">
-<h4>Class belonging</h4>
+<div id="class-belonging" class="section level3">
+<h3>Class belonging</h3>
 <pre class="r"><code>lm_class_belong = lm(class_belong_comp4~ condition + gender_male_dummy + race_asian + race_black + 
     race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
     class_know_prior,
@@ -721,7 +741,9 @@ summary(lm_class_belong)</code></pre>
 ##   (1 observation deleted due to missingness)
 ## Multiple R-squared:  0.2442, Adjusted R-squared:  0.1722 
 ## F-statistic: 3.393 on 12 and 126 DF,  p-value: 0.0002561</code></pre>
-<p>Prompted discussion is a significant predictor, as is classmates known prior.</p>
+<p>Prompted discussion is a significant predictor, as is classmates known prior. Asian is marginal.</p>
+<p>class_know_prior Est=.265, SE=.069, p&lt;.001</p>
+<p>Asian Est=-.618, SE=.320, p=.056</p>
 <pre class="r"><code>emmeans(lm_class_belong, pairwise ~ condition, adjust= &quot;holm&quot;)</code></pre>
 <pre><code>## $emmeans
 ##  condition emmean    SE  df lower.CL upper.CL
@@ -741,12 +763,15 @@ summary(lm_class_belong)</code></pre>
 ## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
 ## P value adjustment: holm method for 3 tests</code></pre>
 <p>Prompted discussion is significantly different from both other conditions.</p>
+<p>Prompted discussion to:</p>
+<p>Control B=-.594, SE=.241, p=.034</p>
+<p>Prompted disclosure B=-.584, SE=0.227 p=.034</p>
 </div>
 </div>
-<div id="subject-area-motivation" class="section level3">
-<h3>Subject Area motivation</h3>
-<div id="intrinsic-motivation" class="section level4">
-<h4>Intrinsic motivation</h4>
+<div id="subject-area-motivation" class="section level2">
+<h2>Subject Area motivation</h2>
+<div id="intrinsic-motivation" class="section level3">
+<h3>Intrinsic motivation</h3>
 <pre class="r"><code>lm_motiv_intrins = lm(motiv_intrins_comp2~ condition + gender_male_dummy + race_asian + race_black + 
     race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
     class_know_prior,
@@ -787,7 +812,9 @@ summary(lm_motiv_intrins)</code></pre>
 ##   (1 observation deleted due to missingness)
 ## Multiple R-squared:  0.1623, Adjusted R-squared:  0.08248 
 ## F-statistic: 2.034 on 12 and 126 DF,  p-value: 0.02629</code></pre>
-<p>Intercept is significant, as is gender, in the direction that females feel more intrinsic motivation. Classmates known prior is once again a significant positive predictor.</p>
+<p>Intercept is significant, as is gender, such that men report greater intrinsic motivation. Classmates known prior is once again a significant positive predictor.</p>
+<p>Gender Est=-.410, SE=.143, p=.005</p>
+<p>Classmates known Est=.131, SE=.051, p=.012</p>
 <p>Once again, only want the emmeans since that’s what we reported.</p>
 <pre class="r"><code>emmeans(lm_motiv_intrins, pairwise ~ condition, adjust= &quot;holm&quot;)</code></pre>
 <pre><code>## $emmeans
@@ -807,9 +834,10 @@ summary(lm_motiv_intrins)</code></pre>
 ## 
 ## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
 ## P value adjustment: holm method for 3 tests</code></pre>
+<p>There was no effect of condition on intrinsic motivation.</p>
 </div>
-<div id="utility-motivation" class="section level4">
-<h4>Utility motivation</h4>
+<div id="utility-motivation" class="section level3">
+<h3>Utility motivation</h3>
 <pre class="r"><code>lm_motiv_util = lm(motiv_util_comp3~ condition + gender_male_dummy + race_asian + race_black + 
     race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
     class_know_prior,
@@ -851,6 +879,9 @@ summary(lm_motiv_util)</code></pre>
 ## Multiple R-squared:  0.2388, Adjusted R-squared:  0.1663 
 ## F-statistic: 3.295 on 12 and 126 DF,  p-value: 0.000361</code></pre>
 <p>Prompted discussion is a significant predictor, as is being female, being black, and classmates known prior. Two classes are significant predictors of utility motivation (go those professors)</p>
+<p>Gender Est=-.351, SE=.131, p=.009</p>
+<p>Black Est=.597, SE=.295, p=.045</p>
+<p>Classmates known Est=.106, SE=.047, p=.026</p>
 <pre class="r"><code>emmeans(lm_motiv_util, pairwise ~ condition, adjust= &quot;holm&quot;)</code></pre>
 <pre><code>## $emmeans
 ##  condition emmean    SE  df lower.CL upper.CL
@@ -869,10 +900,12 @@ summary(lm_motiv_util)</code></pre>
 ## 
 ## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
 ## P value adjustment: holm method for 3 tests</code></pre>
-<p>Prompted discussion is significantly different from the control, being .448 points higher than the control.</p>
+<p>We found that there was a significant difference between the control and the prompted discussion, such that the prompted discussion was nearly half a point higher on utility motivation than the control.</p>
+<p>Control to prompted discussion<br />
+B=-0.448 SE=.165, p=.022</p>
 </div>
-<div id="quiz-performance" class="section level4">
-<h4>Quiz performance</h4>
+<div id="quiz-performance" class="section level3">
+<h3>Quiz performance</h3>
 <pre class="r"><code>lm_quiz_average = lm(quiz_average~ condition + gender_male_dummy + race_asian + race_black + 
     race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
     class_know_prior,
@@ -934,10 +967,10 @@ summary(lm_quiz_average)</code></pre>
 ## P value adjustment: holm method for 3 tests</code></pre>
 </div>
 </div>
-<div id="exploratory-analyses-not-done-yet" class="section level3">
-<h3>Exploratory analyses NOT DONE YET</h3>
-<div id="thinking-deeper" class="section level4">
-<h4>Thinking deeper</h4>
+<div id="exploratory-analyses" class="section level2">
+<h2>Exploratory analyses</h2>
+<div id="thinking-deeper" class="section level3">
+<h3>Thinking deeper</h3>
 <pre class="r"><code>lm_manip_help_think = lm(manip_help_think~ condition + gender_male_dummy + race_asian + race_black + 
     race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
     class_know_prior,
@@ -978,7 +1011,8 @@ summary(lm_manip_help_think)</code></pre>
 ##   (1 observation deleted due to missingness)
 ## Multiple R-squared:  0.05675,    Adjusted R-squared:  -0.03308 
 ## F-statistic: 0.6317 on 12 and 126 DF,  p-value: 0.8119</code></pre>
-<p>None of the conditions are significant, though hispanic did come out as significant.</p>
+<p>None of the conditions are significant, though Hispanic did come out as significant.</p>
+<p>Hispanic Est=.662, SE=.314, p=.037</p>
 <pre class="r"><code>emmeans(lm_manip_help_think, pairwise ~ condition, adjust= &quot;holm&quot;)</code></pre>
 <pre><code>## $emmeans
 ##  condition emmean    SE  df lower.CL upper.CL
@@ -998,8 +1032,8 @@ summary(lm_manip_help_think)</code></pre>
 ## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
 ## P value adjustment: holm method for 3 tests</code></pre>
 </div>
-<div id="similarity-to-class" class="section level4">
-<h4>Similarity to class</h4>
+<div id="similarity-to-class" class="section level3">
+<h3>Similarity to class</h3>
 <pre class="r"><code>lm_class_similar = lm(class_similar_comp2~ condition + gender_male_dummy + race_asian + race_black + 
     race_multiracial + race_hispanic + section_greene + section_verbecke + section_cameron + know_prior_study + 
     class_know_prior,
@@ -1060,7 +1094,8 @@ summary(lm_class_similar)</code></pre>
 ## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
 ## P value adjustment: holm method for 3 tests</code></pre>
 <p>The prompted disclosure condition is significantly different than both conditions.</p>
-</div>
+<p>Control B=.556, SE=.194, p=.001</p>
+<p>Prompted discussion B=.856, SE=.190, p&lt;.001</p>
 <div id="task-enjoyment" class="section level4">
 <h4>Task enjoyment</h4>
 <pre class="r"><code>lm_group_enjoy = lm(group_engagement_comp3~ condition + gender_male_dummy + race_asian + race_black + 
@@ -1103,7 +1138,8 @@ summary(lm_group_enjoy)</code></pre>
 ##   (1 observation deleted due to missingness)
 ## Multiple R-squared:  0.202,  Adjusted R-squared:  0.126 
 ## F-statistic: 2.658 on 12 and 126 DF,  p-value: 0.003288</code></pre>
-<p>The overall model is significant, as is being Asian.</p>
+<p>Asian students reported enjoying the task more, and the overall model was significant.</p>
+<p>Asian Est=.581, SE=.231, p=.013</p>
 <pre class="r"><code>emmeans(lm_group_enjoy, pairwise ~ condition, adjust= &quot;holm&quot;)</code></pre>
 <pre><code>## $emmeans
 ##  condition emmean    SE  df lower.CL upper.CL
@@ -1123,6 +1159,7 @@ summary(lm_group_enjoy)</code></pre>
 ## Results are averaged over the levels of: gender_male_dummy, race_asian, race_black, race_multiracial, race_hispanic, section_greene, section_verbecke, section_cameron 
 ## P value adjustment: holm method for 3 tests</code></pre>
 <p>Prompted discussion is significantly different from disclosure, but the control is not significantly different from either.</p>
+<p>Prompted discussion B=-.446 SE=0.164, p=.023</p>
 </div>
 </div>
 </div>
